@@ -1,9 +1,45 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:root {
+  /* ============================================================
+     Transitions.dev Motion Tokens
+     ============================================================ */
+  --duration-stagger: 40ms;
+  --duration-micro: 80ms;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --duration-very-slow: 500ms;
+
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: ease-in-out;
+  --ease-out: ease-out;
+  --ease-linear: linear;
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-bounce-strong: cubic-bezier(0.34, 3.85, 0.64, 1);
+
+  --distance-micro: 4px;
+  --distance-small: 6px;
+  --distance-base: 8px;
+  --distance-medium: 12px;
+  --distance-large: 30px;
+
+  --scale-large: 0.96;
+  --scale-medium: 0.97;
+  --scale-small: 0.98;
+  --scale-tiny: 0.99;
+
+  --blur-small: 2px;
+  --blur-medium: 3px;
+  --blur-large: 8px;
+}
 
 @layer base {
   html,
   body {
-    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
+      sans-serif;
     background-color: #12142e;
     color: #f8fafc;
     overflow-x: hidden;
@@ -12,7 +48,8 @@
   code,
   pre,
   .font-mono {
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+      monospace;
   }
 }
 
@@ -35,7 +72,22 @@
 }
 
 .animate-dock-bounce {
-  animation: dock-bounce 560ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: dock-bounce var(--duration-very-slow) var(--ease-bounce);
+}
+
+@keyframes modal-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, var(--distance-base), 0) scale(var(--scale-large));
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-modal-pop {
+  animation: modal-pop var(--duration-fast) var(--ease-smooth-out);
 }
 
 /* Stationary dock slot (never moves, preventing hover edge-flicker) */
@@ -49,21 +101,41 @@
   will-change: transform;
 }
 
-.dock-tooltip {
-  opacity: 0;
-  transform: translate3d(-50%, 6px, 0) scale(0.96);
-  transition:
-    opacity 180ms ease-in-out,
-    transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+/* Tactile Button Feedback (Emil Kowalski Design Engineering) */
+.dock-icon-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-micro) var(--ease-out);
 }
 
-.dock-item:not([data-active="true"]):is(:hover, :focus-within) .dock-tooltip {
+.dock-icon-btn:active {
+  transform: scale(var(--scale-large));
+}
+
+button:active {
+  transform: scale(var(--scale-medium));
+}
+
+/* Tooltip: Open/close asymmetry with intent delay (80ms intent filter) */
+.dock-tooltip {
+  opacity: 0;
+  transform: translate3d(-50%, var(--distance-small), 0)
+    scale(var(--scale-small));
+  transition: opacity 100ms var(--ease-out),
+    transform 120ms var(--ease-smooth-out);
+}
+
+.dock-item:not([data-active='true']):is(:hover, :focus-within) .dock-tooltip {
   opacity: 1;
   transform: translate3d(-50%, 0, 0) scale(1);
+  transition: opacity var(--duration-quick) var(--ease-out)
+      var(--duration-micro),
+    transform var(--duration-fast) var(--ease-smooth-out) var(--duration-micro);
 }
 
 /* ============================================================
    Expressive, Interruptible Per-Icon Hover Animations (GPU-Only)
+   Polished with transitions.dev motion tokens
    ============================================================ */
 
 /* 1. Apps: 4 colored tiles burst outward in a staggered spring wave */
@@ -73,23 +145,26 @@
 .dock-tile-br {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+  transition: transform var(--duration-fast) var(--ease-smooth-out) 0ms;
 }
 .dock-item:is(:hover, :focus-within) .dock-tile-tl {
   transform: translate3d(-6px, -6px, 0) scale(1.12) rotate(-8deg);
-  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 0ms;
+  transition: transform var(--duration-slow) var(--ease-smooth-out) 0ms;
 }
 .dock-item:is(:hover, :focus-within) .dock-tile-tr {
   transform: translate3d(6px, -6px, 0) scale(1.12) rotate(8deg);
-  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 45ms;
+  transition: transform var(--duration-slow) var(--ease-smooth-out)
+    var(--duration-stagger);
 }
 .dock-item:is(:hover, :focus-within) .dock-tile-bl {
   transform: translate3d(-6px, 6px, 0) scale(1.12) rotate(8deg);
-  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 90ms;
+  transition: transform var(--duration-slow) var(--ease-smooth-out)
+    calc(var(--duration-stagger) * 2);
 }
 .dock-item:is(:hover, :focus-within) .dock-tile-br {
   transform: translate3d(6px, 6px, 0) scale(1.12) rotate(-8deg);
-  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 135ms;
+  transition: transform var(--duration-slow) var(--ease-smooth-out)
+    calc(var(--duration-stagger) * 3);
 }
 
 /* 2. Projects: terminal pops forward, </> splits wide, traffic dots hop */
@@ -102,7 +177,7 @@
 .dock-code-lines {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 320ms cubic-bezier(0.24, 1.36, 0.38, 1);
+  transition: transform var(--duration-medium) var(--ease-smooth-out);
 }
 .dock-item:is(:hover, :focus-within) .dock-code-folder {
   transform: rotate(2.5deg) scale(0.97);
@@ -121,15 +196,15 @@
 }
 .dock-item:is(:hover, :focus-within) .dock-code-dot-1 {
   transform: translate3d(0, -3.5px, 0) scale(1.32);
-  transition-delay: 30ms;
+  transition-delay: 0ms;
 }
 .dock-item:is(:hover, :focus-within) .dock-code-dot-2 {
   transform: translate3d(0, -3.5px, 0) scale(1.32);
-  transition-delay: 85ms;
+  transition-delay: var(--duration-stagger);
 }
 .dock-item:is(:hover, :focus-within) .dock-code-dot-3 {
   transform: translate3d(0, -3.5px, 0) scale(1.32);
-  transition-delay: 140ms;
+  transition-delay: calc(var(--duration-stagger) * 2);
 }
 .dock-item:is(:hover, :focus-within) .dock-code-lines {
   transform: scaleX(1.14);
@@ -140,7 +215,7 @@
 .dock-profile-bust {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 380ms cubic-bezier(0.24, 1.4, 0.36, 1);
+  transition: transform var(--duration-medium) var(--ease-smooth-out);
 }
 .dock-item:is(:hover, :focus-within) .dock-profile-head {
   transform: translate3d(0, -7.5px, 0) rotate(7deg) scale(1.11);
@@ -154,9 +229,8 @@
 .dock-resume-avatar,
 .dock-resume-line {
   transform-box: fill-box;
-  transition:
-    transform 360ms cubic-bezier(0.24, 1.38, 0.38, 1),
-    opacity 240ms ease;
+  transition: transform var(--duration-medium) var(--ease-smooth-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 .dock-resume-sheet,
 .dock-resume-avatar {
@@ -172,86 +246,230 @@
   transform: scale(1.16) rotate(-6deg);
 }
 .dock-item:is(:hover, :focus-within) .dock-resume-line-1 {
-  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  transform: translate3d(var(--distance-micro), 0, 0) scaleX(1.07);
   opacity: 1;
-  transition-delay: 40ms;
+  transition-delay: 0ms;
 }
 .dock-item:is(:hover, :focus-within) .dock-resume-line-2 {
-  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  transform: translate3d(var(--distance-micro), 0, 0) scaleX(1.07);
   opacity: 1;
-  transition-delay: 90ms;
+  transition-delay: var(--duration-stagger);
 }
 .dock-item:is(:hover, :focus-within) .dock-resume-line-3 {
-  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  transform: translate3d(var(--distance-micro), 0, 0) scaleX(1.07);
   opacity: 1;
-  transition-delay: 140ms;
+  transition-delay: calc(var(--duration-stagger) * 2);
 }
 .dock-item:is(:hover, :focus-within) .dock-resume-line-4 {
-  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  transform: translate3d(var(--distance-micro), 0, 0) scaleX(1.07);
   opacity: 1;
-  transition-delay: 190ms;
+  transition-delay: calc(var(--duration-stagger) * 3);
 }
 
-/* 5. Journal: fountain pen glides across golden calligraphic ink (pure GPU) */
+/* 5. Journal: Real-time calligraphic writing animation across curve */
 .dock-pen-nib {
   transform-box: fill-box;
   transform-origin: 20% 80%;
-  transition: transform 440ms cubic-bezier(0.24, 1.36, 0.38, 1);
+  transition: transform var(--duration-slow) var(--ease-smooth-out);
 }
+
 .dock-ink-group {
   transform-box: fill-box;
   transform-origin: left center;
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.dock-ink-sheen {
-  transform-box: fill-box;
-  transform-origin: left center;
-  opacity: 0;
-  transform: translate3d(-4px, 0, 0) scaleX(0.92);
-  transition:
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1) 40ms,
-    opacity 240ms ease 40ms;
-}
-.dock-item:is(:hover, :focus-within) .dock-pen-nib {
-  transform: translate3d(18px, -7px, 0) rotate(11deg) scale(1.08);
-}
-.dock-item:is(:hover, :focus-within) .dock-ink-group {
-  transform: translate3d(2px, -1px, 0) scale(1.05);
-}
-.dock-item:is(:hover, :focus-within) .dock-ink-sheen {
-  opacity: 0.9;
-  transform: translate3d(0, 0, 0) scaleX(1);
 }
 
-/* 6. Notes: wooden pencil leaps high off cover & spiral rings ripple */
-.dock-pencil,
+.dock-ink-ambient,
+.dock-ink-stroke,
+.dock-ink-sheen {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--duration-medium) var(--ease-smooth-out);
+}
+
+.dock-nib-flare {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+@keyframes dock-pen-write {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  32% {
+    transform: translate3d(27px, -11px, 0) rotate(-6deg);
+  }
+  62% {
+    transform: translate3d(44px, 4px, 0) rotate(7deg);
+  }
+  86% {
+    transform: translate3d(65px, -7px, 0) rotate(-2deg);
+  }
+  100% {
+    transform: translate3d(68px, -14px, 0) rotate(6deg) scale(1.05);
+  }
+}
+
+@keyframes dock-ink-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  32% {
+    stroke-dashoffset: 58;
+  }
+  62% {
+    stroke-dashoffset: 28;
+  }
+  86% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dock-flare-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  15% {
+    opacity: 0.95;
+    transform: scale(1.3);
+  }
+  85% {
+    opacity: 0.95;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+.dock-item:is(:hover, :focus-within) .dock-pen-nib {
+  animation: dock-pen-write 720ms var(--ease-smooth-out) forwards;
+}
+
+.dock-item:is(:hover, :focus-within) .dock-ink-ambient,
+.dock-item:is(:hover, :focus-within) .dock-ink-stroke,
+.dock-item:is(:hover, :focus-within) .dock-ink-sheen {
+  animation: dock-ink-draw 720ms var(--ease-smooth-out) forwards;
+}
+
+.dock-item:is(:hover, :focus-within) .dock-nib-flare {
+  animation: dock-flare-glow 720ms var(--ease-smooth-out) forwards;
+}
+
+/* 6. Notes: wooden pencil actively sketches notes & checkmark with cascade ring ripple */
+.dock-pencil {
+  transform-box: fill-box;
+  transform-origin: 30% 70%;
+  transition: transform var(--duration-medium) var(--ease-smooth-out);
+}
+
+.dock-notebook-paper {
+  transform-box: fill-box;
+}
+
+.dock-pencil-stroke,
+.dock-pencil-check {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--duration-fast) var(--ease-smooth-out);
+}
+
 .dock-notebook-ring {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 400ms cubic-bezier(0.24, 1.42, 0.36, 1);
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
 }
+
+@keyframes dock-pencil-sketch {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  24% {
+    /* Glide to first line & start sketching */
+    transform: translate3d(-18px, -18px, 0) rotate(-8deg) scale(0.96);
+  }
+  48% {
+    /* Draw across note line */
+    transform: translate3d(10px, -18px, 0) rotate(3deg) scale(0.98);
+  }
+  70% {
+    /* Move down to checkmark */
+    transform: translate3d(-14px, -2px, 0) rotate(-5deg) scale(0.95);
+  }
+  84% {
+    /* Tap checkmark flourish */
+    transform: translate3d(2px, -8px, 0) rotate(6deg) scale(1.02);
+  }
+  100% {
+    /* Energetic lift & celebrate */
+    transform: translate3d(8px, -14px, 0) rotate(14deg) scale(1.14);
+  }
+}
+
+@keyframes dock-graphite-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  48% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dock-check-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  50% {
+    stroke-dashoffset: 100;
+  }
+  84% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 .dock-item:is(:hover, :focus-within) .dock-pencil {
-  transform: translate3d(5px, -13px, 0) rotate(13deg) scale(1.14);
+  animation: dock-pencil-sketch 720ms var(--ease-smooth-out) forwards;
 }
+
+.dock-item:is(:hover, :focus-within) .dock-pencil-stroke {
+  animation: dock-graphite-draw 720ms var(--ease-smooth-out) forwards;
+}
+
+.dock-item:is(:hover, :focus-within) .dock-pencil-check {
+  animation: dock-check-draw 720ms var(--ease-smooth-out) forwards;
+}
+
 .dock-item:is(:hover, :focus-within) .dock-notebook-ring-1 {
   transform: translate3d(-3px, 0, 0) scale(1.08);
   transition-delay: 0ms;
 }
 .dock-item:is(:hover, :focus-within) .dock-notebook-ring-2 {
   transform: translate3d(-3px, 0, 0) scale(1.08);
-  transition-delay: 35ms;
+  transition-delay: var(--duration-stagger);
 }
 .dock-item:is(:hover, :focus-within) .dock-notebook-ring-3 {
   transform: translate3d(-3px, 0, 0) scale(1.08);
-  transition-delay: 70ms;
+  transition-delay: calc(var(--duration-stagger) * 2);
 }
 .dock-item:is(:hover, :focus-within) .dock-notebook-ring-4 {
   transform: translate3d(-3px, 0, 0) scale(1.08);
-  transition-delay: 105ms;
+  transition-delay: calc(var(--duration-stagger) * 3);
 }
 .dock-item:is(:hover, :focus-within) .dock-notebook-ring-5 {
   transform: translate3d(-3px, 0, 0) scale(1.08);
-  transition-delay: 140ms;
+  transition-delay: calc(var(--duration-stagger) * 4);
 }
 
 /* 7. Settings: brushed metal knobs roll across full track with spring overshoot */
@@ -262,7 +480,7 @@
 .dock-track-fill-top,
 .dock-track-fill-bot {
   transform-box: fill-box;
-  transition: transform 440ms cubic-bezier(0.24, 1.38, 0.36, 1);
+  transition: transform var(--duration-medium) var(--ease-smooth-out);
 }
 .dock-knob-top-spin,
 .dock-knob-bot-spin {
@@ -297,39 +515,39 @@
 .dock-envelope {
   transform-box: fill-box;
   transform-origin: center;
-  transition: transform 340ms cubic-bezier(0.24, 1.38, 0.38, 1);
+  transition: transform var(--duration-medium) var(--ease-smooth-out);
 }
 .dock-env-flap-front {
   transform-box: fill-box;
   transform-origin: center top;
   opacity: 1;
-  transition:
-    transform 170ms ease-in 120ms,
-    opacity 120ms ease 120ms;
+  transition: transform var(--duration-quick) var(--ease-smooth-out)
+      var(--duration-micro),
+    opacity var(--duration-quick) var(--ease-out) var(--duration-micro);
 }
 .dock-env-flap-shadow {
-  transition: opacity 150ms ease 100ms;
+  transition: opacity var(--duration-quick) var(--ease-out)
+    var(--duration-micro);
 }
 .dock-env-flap-back {
   transform-box: fill-box;
   transform-origin: center top;
   transform: scaleY(0);
   opacity: 0;
-  transition:
-    transform 160ms ease-in,
-    opacity 100ms ease;
+  transition: transform var(--duration-quick) var(--ease-smooth-out),
+    opacity 100ms var(--ease-out);
 }
 .dock-env-letter {
   transform-box: fill-box;
   transform-origin: center bottom;
-  transition: transform 220ms ease-in;
+  transition: transform var(--duration-fast) var(--ease-smooth-out);
 }
 .dock-wax-seal {
   transform-box: fill-box;
   transform-origin: center;
-  transition:
-    transform 220ms ease-in 100ms,
-    opacity 160ms ease 100ms;
+  transition: transform var(--duration-fast) var(--ease-bounce)
+      var(--duration-micro),
+    opacity var(--duration-quick) var(--ease-out) var(--duration-micro);
 }
 
 .dock-item:is(:hover, :focus-within) .dock-envelope {
@@ -338,31 +556,30 @@
 .dock-item:is(:hover, :focus-within) .dock-env-flap-front {
   transform: scaleY(0);
   opacity: 0;
-  transition:
-    transform 160ms ease-in,
-    opacity 80ms ease 100ms;
+  transition: transform var(--duration-quick) var(--ease-smooth-out),
+    opacity var(--duration-micro) var(--ease-out) var(--duration-micro);
 }
 .dock-item:is(:hover, :focus-within) .dock-env-flap-shadow {
   opacity: 0;
-  transition: opacity 140ms ease;
+  transition: opacity var(--duration-quick) var(--ease-out);
 }
 .dock-item:is(:hover, :focus-within) .dock-env-flap-back {
   transform: scaleY(-0.82);
   opacity: 1;
-  transition:
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1) 130ms,
-    opacity 80ms ease 120ms;
+  transition: transform var(--duration-fast) var(--ease-smooth-out)
+      var(--duration-micro),
+    opacity var(--duration-micro) var(--ease-out) var(--duration-micro);
 }
 .dock-item:is(:hover, :focus-within) .dock-env-letter {
   transform: translate3d(0, -18px, 0) rotate(-1.5deg) scale(1.03);
-  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
+  transition: transform var(--duration-medium) var(--ease-smooth-out)
+    var(--duration-micro);
 }
 .dock-item:is(:hover, :focus-within) .dock-wax-seal {
   transform: translate3d(0, -30px, 0) scale(0.45);
   opacity: 0;
-  transition:
-    transform 200ms ease-out,
-    opacity 140ms ease 40ms;
+  transition: transform var(--duration-fast) var(--ease-bounce),
+    opacity var(--duration-quick) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

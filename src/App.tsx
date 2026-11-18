@@ -48,7 +48,8 @@ export default function App() {
 
   return (
     <main
-      className="relative min-h-screen w-full flex flex-col items-center justify-center px-3 sm:px-6 overflow-hidden"
+      onClick={() => setActiveAppId(null)}
+      className="relative min-h-screen w-full flex flex-col items-center justify-center px-3 sm:px-6 overflow-hidden select-none"
       style={{
         backgroundColor: '#7B7DCE',
         backgroundImage: `
@@ -59,7 +60,10 @@ export default function App() {
       }}
     >
       {/* Anchored 3D Frosted Glass Dock (never shifts vertically when modals open) */}
-      <div className="relative z-10 flex flex-col items-center">
+      <div
+        className="relative z-10 flex flex-col items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Interactive App Window floating cleanly above the dock */}
         {activeAppId && (
           <div className="fixed inset-x-0 bottom-[calc(50%+96px)] px-3 sm:px-6 flex justify-center z-30 pointer-events-none">

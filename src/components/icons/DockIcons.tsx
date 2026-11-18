@@ -383,12 +383,13 @@ function FountainPenIcon() {
 
       <g className="dock-ink-group">
         <path
-          className="dock-ink-stroke"
+          className="dock-ink-ambient"
           d="M 33 88 C 44 88 53 77 62 77 C 71 77 65 92 78 92 C 88 92 94 84 99 81"
           fill="none"
           stroke="rgba(255, 212, 110, 0.22)"
           strokeWidth="6.5"
           strokeLinecap="round"
+          pathLength="100"
         />
         <path
           className="dock-ink-stroke"
@@ -397,14 +398,16 @@ function FountainPenIcon() {
           stroke={`url(#${uid}-ink)`}
           strokeWidth="3.2"
           strokeLinecap="round"
+          pathLength="100"
         />
         <path
           className="dock-ink-sheen"
           d="M 33 88 C 44 88 53 77 62 77 C 71 77 65 92 78 92 C 88 92 94 84 99 81"
           fill="none"
           stroke="#fff2b8"
-          strokeWidth="3.6"
+          strokeWidth="1.8"
           strokeLinecap="round"
+          pathLength="100"
         />
       </g>
 
@@ -433,6 +436,8 @@ function FountainPenIcon() {
           <path d="M 60 50.5 H 71 L 74.5 64 L 60 95 Z" fill="rgba(20, 28, 52, 0.16)" />
           <line x1="60" y1="68" x2="60" y2="95" stroke="#182038" strokeWidth="1.4" />
           <circle cx="60" cy="66" r="2.7" fill="#182038" />
+          {/* Luminous gold writing flare at the active nib tip */}
+          <circle cx="60" cy="95" r="3.2" fill="#fff7d6" className="dock-nib-flare" />
         </g>
       </g>
     </SquircleShell>
@@ -484,6 +489,36 @@ function NotebookPencilIcon() {
       <g clipPath={`url(#${uid}-clip)`}>
         <rect x="6" y="6" width="26" height="108" fill={`url(#${uid}-spine)`} />
         <line x1="32" y1="6" x2="32" y2="114" stroke="rgba(255, 224, 170, 0.35)" strokeWidth="1.1" />
+      </g>
+
+      {/* Ruled notepad paper lines & active pencil sketch */}
+      <g className="dock-notebook-paper">
+        <line x1="38" y1="42" x2="88" y2="42" stroke="rgba(120, 50, 10, 0.22)" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="38" y1="58" x2="88" y2="58" stroke="rgba(120, 50, 10, 0.22)" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="38" y1="74" x2="88" y2="74" stroke="rgba(120, 50, 10, 0.22)" strokeWidth="1.2" strokeLinecap="round" />
+
+        {/* Drawn graphite note doodle */}
+        <path
+          className="dock-pencil-stroke"
+          d="M 40 42 Q 52 39 64 42 T 80 42"
+          fill="none"
+          stroke="#422006"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          pathLength="100"
+        />
+
+        {/* Drawn graphite checkmark */}
+        <path
+          className="dock-pencil-check"
+          d="M 40 58 L 47 64 L 62 52"
+          fill="none"
+          stroke="#261003"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength="100"
+        />
       </g>
 
       <path d={SQUIRCLE_PATH} fill="none" stroke={`url(#${uid}-rim)`} strokeWidth="2.1" />

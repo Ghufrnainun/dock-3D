@@ -57,7 +57,7 @@ export function AppPreviewModal({
       role="dialog"
       aria-label={`${activeApp.label} window`}
       data-testid="app-preview-modal"
-      className="w-full max-w-[520px] mx-auto mb-4 rounded-2xl overflow-hidden text-slate-100 shadow-2xl transition-all duration-200"
+      className="w-full max-w-[520px] mx-auto mb-4 rounded-2xl overflow-hidden text-slate-100 shadow-2xl animate-modal-pop"
       style={{
         background: 'linear-gradient(155deg, rgba(30, 29, 72, 0.96), rgba(18, 20, 46, 0.98))',
         border: '1px solid rgba(255, 255, 255, 0.18)',

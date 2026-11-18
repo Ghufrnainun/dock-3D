@@ -1,6 +1,0 @@
-{
-  "name": "3D Frosted Glass Dock",
-  "description": "Interactive 3D frosted glass macOS-style dock with skeuomorphic icons, wave magnification physics, live reflections, and interactive app previews.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

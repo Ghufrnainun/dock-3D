@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="15%" y2="100%">
+      <stop offset="0%" stop-color="#6660ff" />
+      <stop offset="50%" stop-color="#4a40ef" />
+      <stop offset="100%" stop-color="#2a1ebc" />
+    </linearGradient>
+    <linearGradient id="fav-tl" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#ff75f0" />
+      <stop offset="100%" stop-color="#cc15e5" />
+    </linearGradient>
+    <linearGradient id="fav-tr" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#5bfbe4" />
+      <stop offset="100%" stop-color="#0bb4c4" />
+    </linearGradient>
+    <linearGradient id="fav-bl" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#ffd066" />
+      <stop offset="100%" stop-color="#e06e14" />
+    </linearGradient>
+    <linearGradient id="fav-br" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#5caaff" />
+      <stop offset="100%" stop-color="#1846ea" />
+    </linearGradient>
+    <linearGradient id="fav-rim" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75" />
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+    <radialGradient id="fav-glow" cx="50%" cy="10%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <clipPath id="fav-clip">
+      <path d="M 31 6 H 89 C 105.5 6 114 14.5 114 31 V 89 C 114 105.5 105.5 114 89 114 H 31 C 14.5 114 6 105.5 6 89 V 31 C 6 14.5 14.5 6 31 6 Z" />
+    </clipPath>
+  </defs>
+
+  <!-- Ambient Shadow -->
+  <path d="M 31 6 H 89 C 105.5 6 114 14.5 114 31 V 89 C 114 105.5 105.5 114 89 114 H 31 C 14.5 114 6 105.5 6 89 V 31 C 6 14.5 14.5 6 31 6 Z" transform="translate(0, 4)" fill="#07091b" fill-opacity="0.35" />
+
+  <!-- Base Squircle -->
+  <path d="M 31 6 H 89 C 105.5 6 114 14.5 114 31 V 89 C 114 105.5 105.5 114 89 114 H 31 C 14.5 114 6 105.5 6 89 V 31 C 6 14.5 14.5 6 31 6 Z" fill="url(#fav-bg)" />
+  <path d="M 31 6 H 89 C 105.5 6 114 14.5 114 31 V 89 C 114 105.5 105.5 114 89 114 H 31 C 14.5 114 6 105.5 6 89 V 31 C 6 14.5 14.5 6 31 6 Z" fill="url(#fav-glow)" />
+
+  <!-- 4 Colored App Tiles -->
+  <g clip-path="url(#fav-clip)">
+    <rect x="23" y="23" width="32" height="32" rx="9" fill="url(#fav-tl)" />
+    <rect x="65" y="23" width="32" height="32" rx="9" fill="url(#fav-tr)" />
+    <rect x="23" y="65" width="32" height="32" rx="9" fill="url(#fav-bl)" />
+    <rect x="65" y="65" width="32" height="32" rx="9" fill="url(#fav-br)" />
+  </g>
+
+  <!-- Specular Outer Rim -->
+  <path d="M 31 6 H 89 C 105.5 6 114 14.5 114 31 V 89 C 114 105.5 105.5 114 89 114 H 31 C 14.5 114 6 105.5 6 89 V 31 C 6 14.5 14.5 6 31 6 Z" fill="none" stroke="url(#fav-rim)" stroke-width="2.2" />
+</svg>

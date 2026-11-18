@@ -1,26 +1,34 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DOCK_APPS, type DockAppId, type DockAppItem } from '../data/dockApps';
 import {
+  DEFAULT_DOCK_SETTINGS,
+  clampDockSettings,
   stepSpring,
   writeDockIconTargets,
   type DockSettings,
 } from '../utils/dockPhysics';
 import { DockIconGraphic } from './icons/DockIcons';
 
-interface GlassDockProps {
-  settings: DockSettings;
-  activeAppId: DockAppId | null;
-  runningApps: Set<DockAppId>;
-  onSelectApp: (id: DockAppId) => void;
+export interface GlassDockProps {
+  items?: DockAppItem[];
+  settings?: Partial<DockSettings>;
+  activeAppId?: DockAppId | null;
+  runningApps?: Set<DockAppId>;
+  onSelectApp?: (id: DockAppId) => void;
+  className?: string;
+  showTooltips?: boolean;
+  showReflections?: boolean;
 }
 
 const StaticShelfReflections = React.memo(function StaticShelfReflections({
+  items,
   baseSize,
   gap,
   unscaledRowWidth,
   reflectionStartTop,
   reflectionOpacity,
 }: {
+  items: DockAppItem[];
   baseSize: number;
   gap: number;
   unscaledRowWidth: number;
@@ -44,7 +52,7 @@ const StaticShelfReflections = React.memo(function StaticShelfReflections({
           'linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)',
       }}
     >
-      {DOCK_APPS.map((app) => (
+      {items.map((app) => (
         <div
           key={app.id}
           className="shrink-0"
@@ -55,14 +63,18 @@ const StaticShelfReflections = React.memo(function StaticShelfReflections({
             transform: 'scale(1, -0.52)',
           }}
         >
-          <DockIconGraphic id={app.id} />
+          {app.icon ? (
+            <div className="w-full h-full flex items-center justify-center rounded-[22%] bg-white/10 text-white overflow-hidden">
+              {app.icon}
+            </div>
+          ) : (
+            <DockIconGraphic id={app.id} />
+          )}
         </div>
       ))}
     </div>
   );
 });
-
-const APP_COUNT = DOCK_APPS.length;
 
 function computeDockLayoutMetrics(viewportWidth: number): { baseSize: number; gap: number } {
   if (viewportWidth >= 900) {
@@ -81,11 +93,17 @@ function computeDockLayoutMetrics(viewportWidth: number): { baseSize: number; ga
 }
 
 export function GlassDock({
+  items = DOCK_APPS,
   settings,
-  activeAppId,
+  activeAppId = null,
   runningApps,
   onSelectApp,
+  className = '',
+  showTooltips = true,
+  showReflections = true,
 }: GlassDockProps) {
+  const resolvedSettings = useMemo(() => clampDockSettings(settings ?? {}), [settings]);
+  const appCount = items.length;
   const rowRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<Array<HTMLDivElement | null>>([]);
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -102,17 +120,28 @@ export function GlassDock({
   const pointerActiveRef = useRef<boolean>(false);
 
   // Pre-allocated spring & target buffers (zero GC churn per frame)
-  const currentScalesRef = useRef<number[]>(new Array(APP_COUNT).fill(1));
-  const scaleVelsRef = useRef<number[]>(new Array(APP_COUNT).fill(0));
-  const targetScalesRef = useRef<number[]>(new Array(APP_COUNT).fill(1));
+  const currentScalesRef = useRef<number[]>([]);
+  const scaleVelsRef = useRef<number[]>([]);
+  const targetScalesRef = useRef<number[]>([]);
 
-  const currentLiftsRef = useRef<number[]>(new Array(APP_COUNT).fill(0));
-  const liftVelsRef = useRef<number[]>(new Array(APP_COUNT).fill(0));
-  const targetLiftsRef = useRef<number[]>(new Array(APP_COUNT).fill(0));
+  const currentLiftsRef = useRef<number[]>([]);
+  const liftVelsRef = useRef<number[]>([]);
+  const targetLiftsRef = useRef<number[]>([]);
 
-  const targetZIndicesRef = useRef<number[]>(new Array(APP_COUNT).fill(3));
-  const lastZIndicesRef = useRef<number[]>(new Array(APP_COUNT).fill(3));
+  const targetZIndicesRef = useRef<number[]>([]);
+  const lastZIndicesRef = useRef<number[]>([]);
   const lastFrameTimeRef = useRef<number>(0);
+
+  if (currentScalesRef.current.length !== appCount) {
+    currentScalesRef.current = new Array(appCount).fill(1);
+    scaleVelsRef.current = new Array(appCount).fill(0);
+    targetScalesRef.current = new Array(appCount).fill(1);
+    currentLiftsRef.current = new Array(appCount).fill(0);
+    liftVelsRef.current = new Array(appCount).fill(0);
+    targetLiftsRef.current = new Array(appCount).fill(0);
+    targetZIndicesRef.current = new Array(appCount).fill(3);
+    lastZIndicesRef.current = new Array(appCount).fill(3);
+  }
 
   const [{ baseSize, gap }, setDockMetrics] = useState<{ baseSize: number; gap: number }>(() =>
     computeDockLayoutMetrics(typeof window !== 'undefined' ? window.innerWidth : 1440)
@@ -168,25 +197,25 @@ export function GlassDock({
     };
   }, []);
 
-  const unscaledRowWidth = APP_COUNT * baseSize + (APP_COUNT - 1) * gap;
+  const unscaledRowWidth = appCount * baseSize + (appCount - 1) * gap;
 
   const effectiveSettings = useMemo<DockSettings>(() => {
     const ratio = baseSize / 84;
     return {
-      ...settings,
-      influenceRadius: settings.influenceRadius * Math.max(0.55, ratio),
-      maxLift: settings.maxLift * Math.max(0.5, ratio),
+      ...resolvedSettings,
+      influenceRadius: resolvedSettings.influenceRadius * Math.max(0.55, ratio),
+      maxLift: resolvedSettings.maxLift * Math.max(0.5, ratio),
     };
-  }, [settings, baseSize]);
+  }, [resolvedSettings, baseSize]);
 
   // Keep latest geometry & settings in refs so rAF callback stays stable without re-binding
-  const geometryRef = useRef({ baseSize, gap, effectiveSettings });
-  geometryRef.current = { baseSize, gap, effectiveSettings };
+  const geometryRef = useRef({ baseSize, gap, effectiveSettings, appCount });
+  geometryRef.current = { baseSize, gap, effectiveSettings, appCount };
 
   const applyTargets = useCallback((relativePointerX: number | null) => {
-    const { baseSize: bSize, gap: g, effectiveSettings: cfg } = geometryRef.current;
+    const { baseSize: bSize, gap: g, effectiveSettings: cfg, appCount: count } = geometryRef.current;
     writeDockIconTargets({
-      count: APP_COUNT,
+      count,
       baseSize: bSize,
       gap: g,
       pointerX: relativePointerX,
@@ -197,7 +226,7 @@ export function GlassDock({
     });
 
     // Only touch slot z-index DOM style when integer z-index actually changes
-    for (let i = 0; i < APP_COUNT; i++) {
+    for (let i = 0; i < count; i++) {
       const nextZ = targetZIndicesRef.current[i];
       if (lastZIndicesRef.current[i] !== nextZ) {
         lastZIndicesRef.current[i] = nextZ;
@@ -225,8 +254,9 @@ export function GlassDock({
       lastFrameTimeRef.current = now;
 
       let needsNextFrame = false;
+      const { appCount: count } = geometryRef.current;
 
-      for (let i = 0; i < APP_COUNT; i++) {
+      for (let i = 0; i < count; i++) {
         const targetScale = targetScalesRef.current[i];
         const targetLift = targetLiftsRef.current[i];
 
@@ -282,6 +312,7 @@ export function GlassDock({
   );
 
   const ensureAnimationLoop = useCallback(() => {
+    const { appCount: count } = geometryRef.current;
     if (reduceMotionRef.current) {
       if (pointerActiveRef.current && pendingClientXRef.current !== null) {
         const rect = rowRectRef.current ?? measureRowRect();
@@ -290,7 +321,7 @@ export function GlassDock({
         }
         pendingClientXRef.current = null;
       }
-      for (let i = 0; i < APP_COUNT; i++) {
+      for (let i = 0; i < count; i++) {
         currentScalesRef.current[i] = targetScalesRef.current[i];
         currentLiftsRef.current[i] = targetLiftsRef.current[i];
         scaleVelsRef.current[i] = 0;
@@ -360,14 +391,15 @@ export function GlassDock({
 
   const handleIconClick = useCallback(
     (app: DockAppItem, index: number) => {
-      if (settings.enableBounce && !reduceMotionRef.current) {
+      if (resolvedSettings.enableBounce && !reduceMotionRef.current) {
         if (bounceRafRef.current) {
           cancelAnimationFrame(bounceRafRef.current);
         }
         if (bounceTimerRef.current) {
           window.clearTimeout(bounceTimerRef.current);
         }
-        for (let i = 0; i < APP_COUNT; i++) {
+        const { appCount: count } = geometryRef.current;
+        for (let i = 0; i < count; i++) {
           buttonRefs.current[i]?.classList.remove('animate-dock-bounce');
         }
         bounceRafRef.current = requestAnimationFrame(() => {
@@ -382,9 +414,13 @@ export function GlassDock({
           }
         });
       }
-      onSelectApp(app.id);
+      if (app.href && !app.onClick) {
+        window.open(app.href, '_blank', 'noopener,noreferrer');
+      }
+      app.onClick?.();
+      onSelectApp?.(app.id);
     },
-    [settings.enableBounce, onSelectApp]
+    [resolvedSettings.enableBounce, onSelectApp]
   );
 
   // Fixed shelf dimensions (clean liquid glass base, never grows or blurs background)
@@ -400,7 +436,7 @@ export function GlassDock({
   return (
     <nav
       aria-label="Application Dock"
-      className="relative flex flex-col items-center justify-center select-none"
+      className={`relative flex flex-col items-center justify-center select-none ${className}`}
       data-testid="glass-dock"
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
@@ -440,13 +476,16 @@ export function GlassDock({
             }}
           >
             {/* Static memoized reflections inside the fixed glass slab */}
-            <StaticShelfReflections
-              baseSize={baseSize}
-              gap={gap}
-              unscaledRowWidth={unscaledRowWidth}
-              reflectionStartTop={reflectionStartTop}
-              reflectionOpacity={settings.reflectionOpacity}
-            />
+            {showReflections && resolvedSettings.reflectionOpacity > 0 && (
+              <StaticShelfReflections
+                items={items}
+                baseSize={baseSize}
+                gap={gap}
+                unscaledRowWidth={unscaledRowWidth}
+                reflectionStartTop={reflectionStartTop}
+                reflectionOpacity={resolvedSettings.reflectionOpacity}
+              />
+            )}
 
             {/* Curved glass end-cap specular pillars */}
             <div
@@ -503,9 +542,9 @@ export function GlassDock({
             gap: `${gap}px`,
           }}
         >
-          {DOCK_APPS.map((app, index) => {
+          {items.map((app, index) => {
             const isActive = activeAppId === app.id;
-            const isRunning = runningApps.has(app.id);
+            const isRunning = runningApps ? runningApps.has(app.id) : false;
 
             return (
               /* Stationary hit-slot: never moves/scales, eliminating hover edge-flicker */
@@ -523,27 +562,29 @@ export function GlassDock({
                 }}
               >
                 {/* Clean Tooltip anchored above magnified icon (1:1 crisp text) */}
-                <div
-                  role="tooltip"
-                  className="dock-tooltip pointer-events-none absolute left-1/2 whitespace-nowrap rounded-lg px-2.5 py-1 text-[11px] font-medium tracking-wide text-white/95 shadow-lg"
-                  style={{
-                    bottom: `${Math.round(baseSize * Math.max(1.22, settings.magnification) + 18)}px`,
-                    background: 'rgba(18, 20, 46, 0.94)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.42)',
-                  }}
-                >
-                  {app.label}
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-1/2 -bottom-1 -translate-x-1/2 h-2 w-2 rotate-45"
+                {showTooltips && (
+                  <div
+                    role="tooltip"
+                    className="dock-tooltip pointer-events-none absolute left-1/2 whitespace-nowrap rounded-lg px-2.5 py-1 text-[11px] font-medium tracking-wide text-white/95 shadow-lg"
                     style={{
+                      bottom: `${Math.round(baseSize * Math.max(1.22, resolvedSettings.magnification) + 18)}px`,
                       background: 'rgba(18, 20, 46, 0.94)',
-                      borderRight: '1px solid rgba(255, 255, 255, 0.18)',
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.18)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)',
+                      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.42)',
                     }}
-                  />
-                </div>
+                  >
+                    {app.label}
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-1/2 -bottom-1 -translate-x-1/2 h-2 w-2 rotate-45"
+                      style={{
+                        background: 'rgba(18, 20, 46, 0.94)',
+                        borderRight: '1px solid rgba(255, 255, 255, 0.18)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.18)',
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Clickable Icon Button covering stationary slot + magnified visual */}
                 <button
@@ -566,7 +607,13 @@ export function GlassDock({
                     }}
                     className="dock-icon-visual relative block w-full h-full"
                   >
-                    <DockIconGraphic id={app.id} />
+                    {app.icon ? (
+                      <div className="w-full h-full flex items-center justify-center rounded-[22%] bg-white/10 backdrop-blur-sm border border-white/20 text-white shadow-md overflow-hidden">
+                        {app.icon}
+                      </div>
+                    ) : (
+                      <DockIconGraphic id={app.id} />
+                    )}
                   </span>
                 </button>
 

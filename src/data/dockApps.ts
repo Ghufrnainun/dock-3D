@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type DockAppId =
   | 'apps'
   | 'projects'
@@ -6,14 +8,18 @@ export type DockAppId =
   | 'journal'
   | 'notes'
   | 'settings'
-  | 'contact';
+  | 'contact'
+  | (string & {});
 
 export interface DockAppItem {
   id: DockAppId;
   label: string;
-  subtitle: string;
-  accentColor: string;
-  reflectionGlow: string;
+  subtitle?: string;
+  accentColor?: string;
+  reflectionGlow?: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
 }
 
 export const DOCK_APPS: DockAppItem[] = [

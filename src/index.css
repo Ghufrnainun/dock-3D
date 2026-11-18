@@ -1,0 +1,378 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body {
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #12142e;
+    color: #f8fafc;
+    overflow-x: hidden;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}
+
+@keyframes dock-bounce {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  26% {
+    transform: translate3d(0, -18px, 0) scaleY(1.03);
+  }
+  52% {
+    transform: translate3d(0, 0, 0) scaleY(0.98);
+  }
+  74% {
+    transform: translate3d(0, -7px, 0) scaleY(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scaleY(1);
+  }
+}
+
+.animate-dock-bounce {
+  animation: dock-bounce 560ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stationary dock slot (never moves, preventing hover edge-flicker) */
+.dock-slot {
+  contain: layout style;
+}
+
+/* Dedicated GPU compositor layer driven directly via JS spring rAF transform */
+.dock-icon-visual {
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+.dock-tooltip {
+  opacity: 0;
+  transform: translate3d(-50%, 6px, 0) scale(0.96);
+  transition:
+    opacity 180ms ease-in-out,
+    transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dock-item:not([data-active="true"]):is(:hover, :focus-within) .dock-tooltip {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0) scale(1);
+}
+
+/* ============================================================
+   Expressive, Interruptible Per-Icon Hover Animations (GPU-Only)
+   ============================================================ */
+
+/* 1. Apps: 4 colored tiles burst outward in a staggered spring wave */
+.dock-tile-tl,
+.dock-tile-tr,
+.dock-tile-bl,
+.dock-tile-br {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-tile-tl {
+  transform: translate3d(-6px, -6px, 0) scale(1.12) rotate(-8deg);
+  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 0ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-tile-tr {
+  transform: translate3d(6px, -6px, 0) scale(1.12) rotate(8deg);
+  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 45ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-tile-bl {
+  transform: translate3d(-6px, 6px, 0) scale(1.12) rotate(8deg);
+  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 90ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-tile-br {
+  transform: translate3d(6px, 6px, 0) scale(1.12) rotate(-8deg);
+  transition: transform 420ms cubic-bezier(0.22, 1.38, 0.36, 1) 135ms;
+}
+
+/* 2. Projects: terminal pops forward, </> splits wide, traffic dots hop */
+.dock-code-folder,
+.dock-code-card,
+.dock-code-left,
+.dock-code-right,
+.dock-code-slash,
+.dock-code-dot,
+.dock-code-lines {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 320ms cubic-bezier(0.24, 1.36, 0.38, 1);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-folder {
+  transform: rotate(2.5deg) scale(0.97);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-card {
+  transform: translate3d(0, -9px, 0) rotate(-3.5deg) scale(1.09);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-left {
+  transform: translate3d(-6.5px, 0, 0) scale(1.08);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-right {
+  transform: translate3d(6.5px, 0, 0) scale(1.08);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-slash {
+  transform: rotate(18deg) scale(1.16);
+}
+.dock-item:is(:hover, :focus-within) .dock-code-dot-1 {
+  transform: translate3d(0, -3.5px, 0) scale(1.32);
+  transition-delay: 30ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-code-dot-2 {
+  transform: translate3d(0, -3.5px, 0) scale(1.32);
+  transition-delay: 85ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-code-dot-3 {
+  transform: translate3d(0, -3.5px, 0) scale(1.32);
+  transition-delay: 140ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-code-lines {
+  transform: scaleX(1.14);
+}
+
+/* 3. About: head lifts & tilts playfully while bust rises */
+.dock-profile-head,
+.dock-profile-bust {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 380ms cubic-bezier(0.24, 1.4, 0.36, 1);
+}
+.dock-item:is(:hover, :focus-within) .dock-profile-head {
+  transform: translate3d(0, -7.5px, 0) rotate(7deg) scale(1.11);
+}
+.dock-item:is(:hover, :focus-within) .dock-profile-bust {
+  transform: translate3d(0, -4.5px, 0) scale(1.07);
+}
+
+/* 4. Resume: document lifts boldly + avatar pops + cascading line highlight */
+.dock-resume-sheet,
+.dock-resume-avatar,
+.dock-resume-line {
+  transform-box: fill-box;
+  transition:
+    transform 360ms cubic-bezier(0.24, 1.38, 0.38, 1),
+    opacity 240ms ease;
+}
+.dock-resume-sheet,
+.dock-resume-avatar {
+  transform-origin: center;
+}
+.dock-resume-line {
+  transform-origin: left center;
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-sheet {
+  transform: translate3d(0, -8px, 0) rotate(5deg) scale(1.07);
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-avatar {
+  transform: scale(1.16) rotate(-6deg);
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-line-1 {
+  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  opacity: 1;
+  transition-delay: 40ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-line-2 {
+  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  opacity: 1;
+  transition-delay: 90ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-line-3 {
+  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  opacity: 1;
+  transition-delay: 140ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-resume-line-4 {
+  transform: translate3d(4px, 0, 0) scaleX(1.07);
+  opacity: 1;
+  transition-delay: 190ms;
+}
+
+/* 5. Journal: fountain pen glides across golden calligraphic ink (pure GPU) */
+.dock-pen-nib {
+  transform-box: fill-box;
+  transform-origin: 20% 80%;
+  transition: transform 440ms cubic-bezier(0.24, 1.36, 0.38, 1);
+}
+.dock-ink-group {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dock-ink-sheen {
+  transform-box: fill-box;
+  transform-origin: left center;
+  opacity: 0;
+  transform: translate3d(-4px, 0, 0) scaleX(0.92);
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1) 40ms,
+    opacity 240ms ease 40ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-pen-nib {
+  transform: translate3d(18px, -7px, 0) rotate(11deg) scale(1.08);
+}
+.dock-item:is(:hover, :focus-within) .dock-ink-group {
+  transform: translate3d(2px, -1px, 0) scale(1.05);
+}
+.dock-item:is(:hover, :focus-within) .dock-ink-sheen {
+  opacity: 0.9;
+  transform: translate3d(0, 0, 0) scaleX(1);
+}
+
+/* 6. Notes: wooden pencil leaps high off cover & spiral rings ripple */
+.dock-pencil,
+.dock-notebook-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 400ms cubic-bezier(0.24, 1.42, 0.36, 1);
+}
+.dock-item:is(:hover, :focus-within) .dock-pencil {
+  transform: translate3d(5px, -13px, 0) rotate(13deg) scale(1.14);
+}
+.dock-item:is(:hover, :focus-within) .dock-notebook-ring-1 {
+  transform: translate3d(-3px, 0, 0) scale(1.08);
+  transition-delay: 0ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-notebook-ring-2 {
+  transform: translate3d(-3px, 0, 0) scale(1.08);
+  transition-delay: 35ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-notebook-ring-3 {
+  transform: translate3d(-3px, 0, 0) scale(1.08);
+  transition-delay: 70ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-notebook-ring-4 {
+  transform: translate3d(-3px, 0, 0) scale(1.08);
+  transition-delay: 105ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-notebook-ring-5 {
+  transform: translate3d(-3px, 0, 0) scale(1.08);
+  transition-delay: 140ms;
+}
+
+/* 7. Settings: brushed metal knobs roll across full track with spring overshoot */
+.dock-knob-top,
+.dock-knob-bot,
+.dock-knob-top-spin,
+.dock-knob-bot-spin,
+.dock-track-fill-top,
+.dock-track-fill-bot {
+  transform-box: fill-box;
+  transition: transform 440ms cubic-bezier(0.24, 1.38, 0.36, 1);
+}
+.dock-knob-top-spin,
+.dock-knob-bot-spin {
+  transform-origin: center;
+}
+.dock-track-fill-top {
+  transform-origin: left center;
+}
+.dock-track-fill-bot {
+  transform-origin: right center;
+}
+.dock-item:is(:hover, :focus-within) .dock-knob-top {
+  transform: translate3d(26px, 0, 0);
+}
+.dock-item:is(:hover, :focus-within) .dock-knob-top-spin {
+  transform: rotate(180deg);
+}
+.dock-item:is(:hover, :focus-within) .dock-track-fill-top {
+  transform: scaleX(2.08);
+}
+.dock-item:is(:hover, :focus-within) .dock-knob-bot {
+  transform: translate3d(-26px, 0, 0);
+}
+.dock-item:is(:hover, :focus-within) .dock-knob-bot-spin {
+  transform: rotate(-180deg);
+}
+.dock-item:is(:hover, :focus-within) .dock-track-fill-bot {
+  transform: scaleX(2.24);
+}
+
+/* 8. Contact: wax seal pops away, flap unfolds cleanly behind, letter rises high */
+.dock-envelope {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 340ms cubic-bezier(0.24, 1.38, 0.38, 1);
+}
+.dock-env-flap-front {
+  transform-box: fill-box;
+  transform-origin: center top;
+  opacity: 1;
+  transition:
+    transform 170ms ease-in 120ms,
+    opacity 120ms ease 120ms;
+}
+.dock-env-flap-shadow {
+  transition: opacity 150ms ease 100ms;
+}
+.dock-env-flap-back {
+  transform-box: fill-box;
+  transform-origin: center top;
+  transform: scaleY(0);
+  opacity: 0;
+  transition:
+    transform 160ms ease-in,
+    opacity 100ms ease;
+}
+.dock-env-letter {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition: transform 220ms ease-in;
+}
+.dock-wax-seal {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 220ms ease-in 100ms,
+    opacity 160ms ease 100ms;
+}
+
+.dock-item:is(:hover, :focus-within) .dock-envelope {
+  transform: translate3d(0, -3px, 0) scale(1.03);
+}
+.dock-item:is(:hover, :focus-within) .dock-env-flap-front {
+  transform: scaleY(0);
+  opacity: 0;
+  transition:
+    transform 160ms ease-in,
+    opacity 80ms ease 100ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-env-flap-shadow {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.dock-item:is(:hover, :focus-within) .dock-env-flap-back {
+  transform: scaleY(-0.82);
+  opacity: 1;
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1) 130ms,
+    opacity 80ms ease 120ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-env-letter {
+  transform: translate3d(0, -18px, 0) rotate(-1.5deg) scale(1.03);
+  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
+}
+.dock-item:is(:hover, :focus-within) .dock-wax-seal {
+  transform: translate3d(0, -30px, 0) scale(0.45);
+  opacity: 0;
+  transition:
+    transform 200ms ease-out,
+    opacity 140ms ease 40ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dock-bounce {
+    animation: none !important;
+  }
+  .dock-icon-visual,
+  .dock-tooltip,
+  .dock-item * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

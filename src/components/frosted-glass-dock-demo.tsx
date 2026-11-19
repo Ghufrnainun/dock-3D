@@ -8,7 +8,7 @@ export default function FrostedGlassDockDemo() {
   return (
     <div
       onClick={() => setActiveAppId(null)}
-      className="relative min-h-[460px] w-full flex flex-col items-center justify-end pb-8 px-4 overflow-hidden rounded-2xl select-none"
+      className="relative w-full aspect-[16/9] min-h-[520px] max-h-[720px] flex flex-col items-center justify-between py-6 px-4 overflow-hidden rounded-2xl select-none shadow-2xl"
       style={{
         backgroundColor: '#7B7DCE',
         backgroundImage: `
@@ -19,8 +19,22 @@ export default function FrostedGlassDockDemo() {
       }}
     >
       <DockStyleTag />
-      <div onClick={(e) => e.stopPropagation()}>
+
+      {/* Top subtle frosted pill */}
+      <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white/90 text-xs font-medium tracking-wide shadow-sm pointer-events-none">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <span>3D Frosted Glass Dock</span>
+        <span className="text-white/40">•</span>
+        <span className="text-white/70">60 FPS Spring Physics</span>
+      </div>
+
+      {/* Center 3D Dock with Live Wave Motion */}
+      <div
+        className="w-full flex justify-center pb-2"
+        onClick={(e) => e.stopPropagation()}
+      >
         <GlassDock
+          autoDemo={true}
           activeAppId={activeAppId}
           runningApps={runningApps}
           onSelectApp={(id) => {
@@ -29,6 +43,9 @@ export default function FrostedGlassDockDemo() {
           }}
         />
       </div>
+
+      {/* Bottom spacer for 16:9 vertical balance */}
+      <div className="h-2 pointer-events-none" />
     </div>
   );
 }

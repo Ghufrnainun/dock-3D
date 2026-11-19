@@ -18,6 +18,7 @@ export interface GlassDockProps {
   className?: string;
   showTooltips?: boolean;
   showReflections?: boolean;
+  autoDemo?: boolean;
 }
 
 const StaticShelfReflections = React.memo(function StaticShelfReflections({
@@ -101,6 +102,7 @@ export function GlassDock({
   className = '',
   showTooltips = true,
   showReflections = true,
+  autoDemo = false,
 }: GlassDockProps) {
   const resolvedSettings = useMemo(() => clampDockSettings(settings ?? {}), [settings]);
   const appCount = items.length;
@@ -118,6 +120,8 @@ export function GlassDock({
   // Latest pointer X buffered between vsync frames (processed at most once per rAF)
   const pendingClientXRef = useRef<number | null>(null);
   const pointerActiveRef = useRef<boolean>(false);
+  const userInteractedRef = useRef<boolean>(false);
+  const autoDemoStartTimeRef = useRef<number>(0);
 
   // Pre-allocated spring & target buffers (zero GC churn per frame)
   const currentScalesRef = useRef<number[]>([]);
@@ -247,6 +251,16 @@ export function GlassDock({
           applyTargets(pendingClientXRef.current - rect.left);
         }
         pendingClientXRef.current = null;
+      } else if (autoDemo && !pointerActiveRef.current && !userInteractedRef.current && !reduceMotionRef.current) {
+        const { appCount: count, baseSize: bSize, gap: g } = geometryRef.current;
+        const totalRowWidth = count * bSize + (count - 1) * g;
+        if (!autoDemoStartTimeRef.current) {
+          autoDemoStartTimeRef.current = now;
+        }
+        const elapsed = (now - autoDemoStartTimeRef.current) / 1000;
+        const progress = (Math.sin(elapsed * 1.85 - Math.PI / 2) + 1) * 0.5;
+        const sweepX = (0.12 + 0.76 * progress) * totalRowWidth;
+        applyTargets(sweepX);
       }
 
       const prevTime = lastFrameTimeRef.current || now - 16.667;
@@ -301,6 +315,10 @@ export function GlassDock({
         }
       }
 
+      if (autoDemo && !pointerActiveRef.current && !userInteractedRef.current && !reduceMotionRef.current) {
+        needsNextFrame = true;
+      }
+
       if (needsNextFrame) {
         animRafRef.current = requestAnimationFrame(stepAnimation);
       } else {
@@ -340,6 +358,12 @@ export function GlassDock({
     }
   }, [applyTargets, measureRowRect, stepAnimation]);
 
+  useEffect(() => {
+    if (autoDemo && !reduceMotionRef.current) {
+      ensureAnimationLoop();
+    }
+  }, [autoDemo, ensureAnimationLoop]);
+
   const resetDock = useCallback(() => {
     pointerActiveRef.current = false;
     pendingClientXRef.current = null;
@@ -360,6 +384,7 @@ export function GlassDock({
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType && e.pointerType !== 'mouse') return;
+      userInteractedRef.current = true;
       measureRowRect();
       pointerActiveRef.current = true;
       pendingClientXRef.current = e.clientX;
@@ -371,6 +396,7 @@ export function GlassDock({
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType && e.pointerType !== 'mouse') return;
+      userInteractedRef.current = true;
       pointerActiveRef.current = true;
       pendingClientXRef.current = e.clientX;
       ensureAnimationLoop();
@@ -380,6 +406,7 @@ export function GlassDock({
 
   const handleIconFocus = useCallback(
     (index: number) => {
+      userInteractedRef.current = true;
       pointerActiveRef.current = false;
       pendingClientXRef.current = null;
       const center = index * (baseSize + gap) + baseSize / 2;
@@ -391,6 +418,7 @@ export function GlassDock({
 
   const handleIconClick = useCallback(
     (app: DockAppItem, index: number) => {
+      userInteractedRef.current = true;
       if (resolvedSettings.enableBounce && !reduceMotionRef.current) {
         if (bounceRafRef.current) {
           cancelAnimationFrame(bounceRafRef.current);

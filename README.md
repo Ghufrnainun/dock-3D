@@ -2,12 +2,12 @@
 
 ![3D Frosted Glass Dock Preview](./public/preview.png)
 
-An interactive, macOS-inspired 3D frosted glass dock component built with React 19, TypeScript, and Tailwind CSS. Published on [21st.dev/@ainunnajib2006/components/3d-frosted-glass-dock](https://21st.dev/@ainunnajib2006/components/3d-frosted-glass-dock).
+An interactive, macOS-inspired 3D frosted glass dock component built with React 19, TypeScript, and Tailwind CSS. Published on [21st.dev/@ghufrnainun/components/3d-frosted-glass-dock](https://21st.dev/@ghufrnainun/components/3d-frosted-glass-dock).
 
 ## Quick Install (21st.dev)
 
 ```bash
-npx 21st add @ainunnajib2006/3d-frosted-glass-dock
+npx 21st add @ghufrnainun/3d-frosted-glass-dock
 ```
 
 ## Highlights
